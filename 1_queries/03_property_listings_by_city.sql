@@ -1,8 +1,8 @@
 WITH property_avg_rating AS (
-    SELECT property_id,
-           AVG(rating) AS average_rating
-      FROM property_reviews
-     GROUP BY property_id
+  SELECT property_id,
+         AVG(rating) AS average_rating
+    FROM property_reviews
+   GROUP BY property_id
 )
 
 SELECT p.id,
