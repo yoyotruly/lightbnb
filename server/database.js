@@ -40,16 +40,17 @@ const sql = (query, value = null) => {
  * @return {Promise<{}>} A promise to the user.
  */
 const getUserWithEmail = function(email) {
-  let user;
-  for (const userId in users) {
-    user = users[userId];
-    if (user.email.toLowerCase() === email.toLowerCase()) {
-      break;
-    } else {
-      user = null;
-    }
-  }
-  return Promise.resolve(user);
+  const query = "SELECT * FROM users WHERE email = $1";
+  const value = [email.toLowerCase()];
+
+  return pool
+    .query(query, value)
+    .then(res => {
+      const user = res.rows[0];
+      if (!user) return null;
+      return user;
+    })
+    .catch(err => console.log(err.stack));
 };
 exports.getUserWithEmail = getUserWithEmail;
 
