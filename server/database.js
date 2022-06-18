@@ -1,10 +1,11 @@
 const properties = require('./json/properties.json');
-const users = require('./json/users.json');
-const { Pool } = require("pg");
+
 require("dotenv").config();
 const env = process.env;
 
-/// Build Database Connection
+const { Pool } = require("pg");
+
+/* ------ Build Database Connection ------ */
 
 const pool = new Pool({
   user: env.PG_USER,
@@ -19,7 +20,8 @@ pool.on("error", (err, client) => {
   process.exit(-1);
 });
 
-/// Users
+
+/* ------ Users ------ */
 
 /**
  * Get a single user from the database given their email.
@@ -61,21 +63,32 @@ const getUserWithId = function(id) {
 };
 exports.getUserWithId = getUserWithId;
 
-
 /**
  * Add a new user to the database.
  * @param {{name: string, password: string, email: string}} user
  * @return {Promise<{}>} A promise to the user.
  */
 const addUser =  function(user) {
-  const userId = Object.keys(users).length + 1;
-  user.id = userId;
-  users[userId] = user;
-  return Promise.resolve(user);
+  const query = `
+    INSERT INTO users (name, email, password)
+    VALUES ($1, $2, $3)
+    RETURNING *;
+  `;
+  const values = [
+    user.name,
+    user.email,
+    user.password
+  ];
+
+  return pool
+    .query(query, values)
+    .then(res => res.rows[0])
+    .catch(err => console.log(err.stack));
 };
 exports.addUser = addUser;
 
-/// Reservations
+
+/* ------ Reservations ------ */
 
 /**
  * Get all reservations for a single user.
@@ -87,7 +100,8 @@ const getAllReservations = function(guest_id, limit = 10) {
 };
 exports.getAllReservations = getAllReservations;
 
-/// Properties
+
+/* ------ Properties ------ */
 
 /**
  * Get all properties.
