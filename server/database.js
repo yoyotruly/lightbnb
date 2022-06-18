@@ -19,19 +19,6 @@ pool.on("error", (err, client) => {
   process.exit(-1);
 });
 
-/**
- * Send SQL query via node-postgres pool.
- * @param {string} query SQL query
- * @param {Array} value parameterized values
- * @returns {Promise<{}>} a promise to the user
- */
-const sql = (query, value = null) => {
-  return pool
-    .query(query, value)
-    .then(res => res.rows)
-    .catch(err => console.log(err.stack));
-};
-
 /// Users
 
 /**
@@ -112,7 +99,10 @@ const getAllProperties = function(options, limit = 10) {
   const query = "SELECT * FROM properties LIMIT $1";
   const value = [limit];
 
-  return sql(query, value);
+  return pool
+    .query(query, value)
+    .then(res => res.rows)
+    .catch(err => console.log(err.stack));
 };
 exports.getAllProperties = getAllProperties;
 
