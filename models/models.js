@@ -1,5 +1,4 @@
-const db = require('./index');
-
+const db = require('../db/index');
 
 /* ------ Users ------ */
 
