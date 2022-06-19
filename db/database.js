@@ -1,22 +1,4 @@
-require("dotenv").config();
-const env = process.env;
-
-const { Pool } = require("pg");
-
-/* ------ Build Database Connection ------ */
-
-const pool = new Pool({
-  user: env.PG_USER,
-  host: env.PG_HOST,
-  database: env.PG_DATABASE,
-  password: env.PG_PASSWORD,
-  port: env.PG_PORT,
-});
-
-pool.on("error", (err, client) => {
-  console.error("Unexpected error on idle client", err);
-  process.exit(-1);
-});
+const db = require('./index');
 
 
 /* ------ Users ------ */
@@ -28,10 +10,10 @@ pool.on("error", (err, client) => {
  */
 const getUserWithEmail = function(email) {
   const query = "SELECT * FROM users WHERE email = $1";
-  const value = [email.toLowerCase()];
+  const param = [email.toLowerCase()];
 
-  return pool
-    .query(query, value)
+  return db
+    .query(query, param)
     .then(res => {
       const user = res.rows[0];
       if (!user) return null;
@@ -48,10 +30,10 @@ exports.getUserWithEmail = getUserWithEmail;
  */
 const getUserWithId = function(id) {
   const query = "SELECT * FROM users WHERE id = $1";
-  const value = [id];
+  const param = [id];
 
-  return pool
-    .query(query, value)
+  return db
+    .query(query, param)
     .then(res => {
       const user = res.rows[0];
       if (!user) return null;
@@ -72,14 +54,14 @@ const addUser =  function(user) {
     VALUES ($1, $2, $3)
     RETURNING *;
   `;
-  const values = [
+  const params = [
     user.name,
     user.email,
     user.password
   ];
 
-  return pool
-    .query(query, values)
+  return db
+    .query(query, params)
     .then(res => res.rows[0])
     .catch(err => console.log(err.stack));
 };
@@ -111,10 +93,10 @@ const getAllReservations = function(guest_id, limit = 10) {
      ORDER BY start_date
      LIMIT $2;
   `;
-  const values = [guest_id, limit];
+  const params = [guest_id, limit];
 
-  return pool
-    .query(query, values)
+  return db
+    .query(query, params)
     .then(res => res.rows)
     .catch(err => console.log(err.stack));
 };
@@ -156,40 +138,40 @@ const getAllProperties = function(options, limit = 10) {
            JOIN property_avg_rating ar ON p.id = ar.property_id
   `;
 
-  const values = [];
+  const params = [];
   if (options?.city) {
-    values.push(`%${options.city}%`);
-    query += constructQueryFilter(query, `city ILIKE $${values.length}`)
+    params.push(`%${options.city}%`);
+    query += constructQueryFilter(query, `city ILIKE $${params.length}`)
   }
 
   if (options?.owner_id) {
-    values.push(`${options.owner_id}`);
-    query += constructQueryFilter(query, `owner_id = $${values.length}`);
+    params.push(`${options.owner_id}`);
+    query += constructQueryFilter(query, `owner_id = $${params.length}`);
   }
 
   if (options?.minimum_price_per_night) {
-    values.push(`${options.minimum_price_per_night * 100}`);
-    query += constructQueryFilter(query, `cost_per_night >= $${values.length}`);
+    params.push(`${options.minimum_price_per_night * 100}`);
+    query += constructQueryFilter(query, `cost_per_night >= $${params.length}`);
   }
 
   if (options?.maximum_price_per_night) {
-    values.push(`${options.maximum_price_per_night * 100}`);
-    query += constructQueryFilter(query, `cost_per_night <= $${values.length}`);
+    params.push(`${options.maximum_price_per_night * 100}`);
+    query += constructQueryFilter(query, `cost_per_night <= $${params.length}`);
   }
 
   if (options?.minimum_rating) {
-    values.push(`${options.minimum_rating}`);
-    query += constructQueryFilter(query, `average_rating >= $${values.length}`);
+    params.push(`${options.minimum_rating}`);
+    query += constructQueryFilter(query, `average_rating >= $${params.length}`);
   }
 
-  values.push(limit);
+  params.push(limit);
   query += `
     ORDER BY cost_per_night
-    LIMIT $${values.length};
+    LIMIT $${params.length};
   `;
 
-  return pool
-    .query(query, values)
+  return db
+    .query(query, params)
     .then(res => res.rows)
     .catch(err => console.log(err.stack));
 };
@@ -222,7 +204,7 @@ const addProperty = function(property) {
       ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
     RETURNING *;
   `;
-  const values = [
+  const params = [
     property.owner_id,
     property.title,
     property.description,
@@ -239,8 +221,8 @@ const addProperty = function(property) {
     property.number_of_bedrooms
   ];
   
-  return pool
-    .query(query, values)
+  return db
+    .query(query, params)
     .then(res => res.rows[0])
     .catch(err => console.log(err.stack));
   };
