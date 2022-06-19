@@ -97,10 +97,18 @@ exports.addUser = addUser;
  */
 const getAllReservations = function(guest_id, limit = 10) {
   const query = `
+    WITH property_avg_rating AS (
+      SELECT property_id,
+             AVG(rating) AS average_rating
+        FROM property_reviews
+       GROUP BY property_id
+    )
+
     SELECT *
       FROM users u
            LEFT JOIN reservations r ON u.id = r.guest_id
            LEFT JOIN properties p ON p.id = r.property_id
+           LEFT JOIN property_avg_rating ar ON p.id = ar.property_id
      WHERE u.id = $1
      ORDER BY start_date
      LIMIT $2;
@@ -118,17 +126,72 @@ exports.getAllReservations = getAllReservations;
 /* ------ Properties ------ */
 
 /**
+ * Helper function to construct multiple conditioned WHERE clause.
+ * @param {string} query Existing query.
+ * @param {string} condition Filter condition.
+ * @returns {string} WHERE clause with filter condition either start with WHERE
+ * or AND.
+ */
+const constructQueryFilter = (query, condition) => {
+  return query.includes("WHERE") ?
+    `AND ${condition}` :
+    `WHERE ${condition}`;
+}
+
+/**
  * Get all properties.
  * @param {{}} options An object containing query options.
  * @param {*} limit The number of results to return.
  * @return {Promise<[{}]>}  A promise to the properties.
  */
 const getAllProperties = function(options, limit = 10) {
-  const query = "SELECT * FROM properties LIMIT $1";
-  const value = [limit];
+  let query = `
+    WITH property_avg_rating AS (
+      SELECT property_id,
+             AVG(rating) AS average_rating
+        FROM property_reviews
+       GROUP BY property_id
+    )
+
+    SELECT *
+      FROM properties p
+           JOIN property_avg_rating ar ON p.id = ar.property_id
+  `;
+
+  const values = [];
+  if (options?.city) {
+    values.push(`%${options.city}%`);
+    query += constructQueryFilter(query, `city ILIKE $${values.length}`)
+  }
+
+  if (options?.owner_id) {
+    values.push(`${options.owner_id}`);
+    query += constructQueryFilter(query, `owner_id = $${values.length}`);
+  }
+
+  if (options?.minimum_price_per_night) {
+    values.push(`${options.minimum_price_per_night * 100}`);
+    query += constructQueryFilter(query, `cost_per_night >= $${values.length}`);
+  }
+
+  if (options?.maximum_price_per_night) {
+    values.push(`${options.maximum_price_per_night * 100}`);
+    query += constructQueryFilter(query, `cost_per_night <= $${values.length}`);
+  }
+
+  if (options?.minimum_rating) {
+    values.push(`${options.minimum_rating}`);
+    query += constructQueryFilter(query, `average_rating >= $${values.length}`);
+  }
+
+  values.push(limit);
+  query += `
+    ORDER BY cost_per_night
+    LIMIT $${values.length};
+  `;
 
   return pool
-    .query(query, value)
+    .query(query, values)
     .then(res => res.rows)
     .catch(err => console.log(err.stack));
 };
