@@ -28,7 +28,7 @@ Create database schema and insert seed data:
 $ psql
 $ \i db/migrations/01_schema.sql
 $ \c lightbnb
-$ \i db/migrations/seeds/02_seeds.sql
+$ \i db/seeds/02_seeds.sql
 $ \q
 ```
 
