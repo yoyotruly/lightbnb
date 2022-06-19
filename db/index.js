@@ -19,7 +19,7 @@ pool.on("error", (err, client) => {
 });
 
 module.exports = {
-  async query(text, params) {
-    return await pool.query(text, params);
+  query: (text, params) => {
+    return pool.query(text, params);
   }
 };
