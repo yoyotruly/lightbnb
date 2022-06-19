@@ -5,7 +5,8 @@ LightBnB is a
 ## Table of Content
 - [Get Started](#get-started)
 - [Project ERD](#project-erd)
-[[__toc__]]
+- [Sample Pages](#sample-pages)
+- [Dependencies](#dependencies)
 
 ## Get Started
 Before starting, [download and install Node.js](https://nodejs.org/en/download/), if you don't have it installed already. Then run the following command in your terminal:
