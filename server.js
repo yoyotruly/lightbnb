@@ -1,6 +1,6 @@
-const database = require('../db/database');
-const apiRoutes = require('../routes/apiRoutes');
-const userRoutes = require('../routes/userRoutes');
+const models = require('./models/models');
+const apiRoutes = require('./routes/apiRoutes');
+const userRoutes = require('./routes/userRoutes');
 
 const path = require('path');
 
@@ -20,19 +20,19 @@ app.use(bodyParser.json());
 
 // /api/endpoints
 const apiRouter = express.Router();
-apiRoutes(apiRouter, database);
+apiRoutes(apiRouter, models);
 app.use('/api', apiRouter);
 
 // /user/endpoints
 const userRouter = express.Router();
-userRoutes(userRouter, database);
+userRoutes(userRouter, models);
 app.use('/users', userRouter);
 
-app.use(express.static(path.join(__dirname, '../public')));
+app.use(express.static(path.join(__dirname, './public')));
 
 app.get("/test", (req, res) => {
   res.send("🤗");
 });
 
-const port = process.env.PORT || 3000; 
+const port = process.env.PORT || 3000;
 app.listen(port, (err) => console.log(err || `listening on port ${port} 😎`));
