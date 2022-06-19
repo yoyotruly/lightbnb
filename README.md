@@ -3,8 +3,8 @@
 LightBnB is a simple web app focused on database connection. Tech stack involved include Express and Postgress SQL.
 
 ## Table of Content
-- [Get Started](#get-started)
 - [Features](#features)
+- [Get Started](#get-started)
 - [Project ERD](#project-erd)
 - [Sample Pages](#sample-pages)
 - [Dependencies](#dependencies)
